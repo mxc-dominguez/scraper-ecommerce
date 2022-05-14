@@ -1,28 +1,40 @@
 principal:
+
     //ul[@id="cp-start-daily-offers"]
 
 .titles:
+
     //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]/div[@class="emproduct clear listiteminfogrid"]/div[@data-cp-complete-name="emproduct_cptitleBox"]//a/@title
 
 .codigo de producto:
+
     //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]/div[@class="emproduct clear listiteminfogrid"]//div[@class="emproduct_artnum"]/text()
 
 .prices
     
     original_price:
+
         //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/span[@class="oldPrice"]/del/text()
     
     discount_price:
+
         //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/label[@class="price"]/text()
 
 .delivery_cost:
+
     //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emdeliverycost"]/span[@class="deliveryvalue"]/text()
 
 .stock:
+
     //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emstock"]/span/text()
 
 .reviews
+
     //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="emproduct_review"]//div[@class="reviews-total-txt"]/a/text()
+
+        .stars
+        
+            //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="emproduct_review"]//div[@class="cpreviews_starsdesc"]/div[{}]/div[3]/text()
 
 notes:
 

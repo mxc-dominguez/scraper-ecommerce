@@ -70,8 +70,32 @@ class OffersHomeSpider(scrapy.Spider):
             reviews = int(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="emproduct_review"]//div[@class="reviews-total-txt"]/a/text()').get().strip('\nopiniones'))
             current_product['reviews'] = reviews
 
+            # STARS
+            for star in range(1, 6):
+                # EXTRACCIÓN EN BUCLE PARA LAS CINCO TIPOS DE ESTRELLAS POR CADA PRODUCTO
+                # DICCIONARIO PARA NOMBRAR COLUMNAS
+                column_name = {
+                    1 : 'five_stars',
+                    2 : 'four_stars',
+                    3 : 'three_stars',
+                    4 : 'two_stars',
+                    5 : 'one_star'
+                }
+                # DICCIONARIO PARA IDENTIFICAL QUÉ TIPO DE REVIEW SE EXTRAE. EL NOMBRE ES DEBIDO A QUE EN EL DIV #1 SE ENCUANTRAN LAS PUNTUACIONES DE CINCO ESTRELLAS, EN EL SEGUNDO LAS DE CUATRO ESTRELLAS, ETC.
+                div_to_stars = {
+                    1 : 5,
+                    2 : 4,
+                    3 : 3,
+                    4 : 2,
+                    5 : 1
+                }
+                # SE LIMPIAN DOS VECES LOS STRING CON STRIP, LA PRIMERA PARA ELIMINAR TODOS LOS CARACTERES HASTA LOS PARENTESIS (ESTO PARA QUE div_to_stars[stars] NO ELIMINE EL NÚMERO DE REVIEWS EN CASO DE QUE COINCIDAN) Y EL SEGUNDO PARA ELIMINAR LOS PARENTESIS DEJANDO SOLO EL NÚMERO
+                stars = int(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="emproduct_review"]//div[@class="cpreviews_starsdesc"]/div[{star}]/div[3]/text()').get().strip(f'{div_to_stars[star]} estrellas: \n').strip('()'))
+                
+                current_product[column_name[star]] = stars
+
 
             all_products.append(current_product)
         
         products_home = pandas.DataFrame(data=all_products)
-        products_home.to_csv('products_offers.csv', index=False, encoding='utf-8')  
+        products_home.to_csv(f'data-products-offers/products-offers-{date.today()}.csv', index=False, encoding='utf-8')  
