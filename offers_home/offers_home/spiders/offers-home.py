@@ -5,10 +5,11 @@
 """
 
 # STANDARD LIBRARY
+from datetime import date
 from typing import Dict, List
 # THIRD PARTY IMPORTS
-import scrapy
 import pandas
+import scrapy
 
 
 
@@ -20,18 +21,38 @@ class OffersHomeSpider(scrapy.Spider):
 
 
     def parse(self, response) -> None:
-        # LOS DATOS EXTRAIDOS INICIALMENTE SE GUARDAN EN UN DICCIONARIO CON EL 
-        # PROPOSITO DE CONVERTIRLOS EN UN OBJETO pandas.Series Y ASÍ CONSERVAR 
-        # LA RELACION ENTRE EL NÚMERO DEL PRODUCTO Y SUS DATOS
-        product_titles: Dict = {}
+        # LOS PRODUCTOS SERÁN EXTRAÍDOS COMO DICCIONARIOS Y PASADOS A UNA LISTA PARA POSTERIORMENTE CONSTRUIR EL DATAFRAME
+        
+        all_products: List = []
 
-        for product_title in range(1, 13):
-            # EXTRAYENDO TITULOS
-            value = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product_title}"]/div[@class="emproduct clear listiteminfogrid"]/div[@data-cp-complete-name="emproduct_cptitleBox"]//a/@title').get()
-            # ASIGNANDO TITULOS
-            product_titles[product_title] = value
-        # CONVIRTIENDO DICCIONARIO A OBJETO pandas.Series
-        product_titles = pandas.Series(data=product_titles, dtype=str, name='product_titles')
-        # EXPORTANDO A CSV, ESTO PARA ESTAR SEGUROS QUE SE GUARDA LA RELACIÓN Y 
-        # LOS TITULOS SE VISUALIZAN COMPLETOS, ESTO NO SERÁ NECESARIO EN LA VERSION FINAL
-        product_titles.to_csv('products_offers.csv')
+        for product in range(1, 13):
+
+            current_product: Dict = {}
+            
+            # EXTRACCION DE DATOS
+            # NÚMERO DE PRODUCTO COMO SE MUESTRA EN LA PÁGINA[1 - 12]
+            current_product['product'] = product
+
+            # FECHA DE EXTRACCIÓN
+            current_product['extraction_date'] = date.today()
+            
+            # TITULO DE PRODUCTO
+            product_titles = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]/div[@class="emproduct clear listiteminfogrid"]/div[@data-cp-complete-name="emproduct_cptitleBox"]//a/@title').get()
+            current_product['product_title'] = product_titles
+            
+            # CÓDIGO DE PRODUCTO
+            product_codes = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]/div[@class="emproduct clear listiteminfogrid"]//div[@class="emproduct_artnum"]/text()').get()
+            current_product['product_code'] = product_codes
+
+            # NORMAL PRICE
+            normal_prices = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/span[@class="oldPrice"]/del/text()').get()
+            current_product['normal_price'] = float(normal_prices.replace(',', '').strip('\n$'))
+
+            # PRECIO EN DESCUENTO
+            discount_prices = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/label[@class="price"]/text()').get()
+            current_product['discount_price'] = discount_prices.replace(',', '').strip('\n$')
+
+            all_products.append(current_product)
+        
+        products_home = pandas.DataFrame(data=all_products)
+        products_home.to_csv('products_offers.csv', index=False, encoding='utf-8')  

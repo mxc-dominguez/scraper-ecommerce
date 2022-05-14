@@ -1,1 +1,21 @@
-.titles: //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-4"]/div[@class="emproduct clear listiteminfogrid"]/div[@data-cp-complete-name="emproduct_cptitleBox"]//a/@title
+principal:
+    //ul[@id="cp-start-daily-offers"]
+
+.titles:
+    //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-4"]/div[@class="emproduct clear listiteminfogrid"]/div[@data-cp-complete-name="emproduct_cptitleBox"]//a/@title
+
+.codigo de producto:
+    //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-1"]/div[@class="emproduct clear listiteminfogrid"]//div[@class="emproduct_artnum"]/text()
+
+.prices
+    
+    normal_price:
+        //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-1"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/span[@class="oldPrice"]/del/text()
+    
+    discount_price:
+        //ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-1"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/label[@class="price"]/text()
+
+notes:
+
+    crear validadciones de codigo con [style="display: none"] 
+        //ul[@id="cp-start-daily-offers"]
