@@ -16,7 +16,7 @@ import scrapy
 class OffersHomeSpider(scrapy.Spider):
     
     name: str = 'offers_home'
-    allowed_domains: List = ['https://www.cyberpuerta.mx']
+    # allowed_domains: List = ['https://www.cyberpuerta.mx']
     start_urls: List = ['https://www.cyberpuerta.mx']
 
 
@@ -30,11 +30,11 @@ class OffersHomeSpider(scrapy.Spider):
             current_product: Dict = {}
             
             # EXTRACCION DE DATOS
-            # NÚMERO DE PRODUCTO COMO SE MUESTRA EN LA PÁGINA[1 - 12]
+            # NÚMERO DE PRODUCTO
             current_product['product'] = product
 
-            # FECHA DE EXTRACCIÓN
-            current_product['extraction_date'] = date.today()
+            # FECHA
+            current_product['date'] = date.today()
             
             # TITULO DE PRODUCTO
             product_titles = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]/div[@class="emproduct clear listiteminfogrid"]/div[@data-cp-complete-name="emproduct_cptitleBox"]//a/@title').get()
@@ -44,13 +44,32 @@ class OffersHomeSpider(scrapy.Spider):
             product_codes = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]/div[@class="emproduct clear listiteminfogrid"]//div[@class="emproduct_artnum"]/text()').get()
             current_product['product_code'] = product_codes
 
-            # NORMAL PRICE
-            normal_prices = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/span[@class="oldPrice"]/del/text()').get()
-            current_product['normal_price'] = float(normal_prices.replace(',', '').strip('\n$'))
+            # PRECIO ORIGINAL
+            original_prices = float(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/span[@class="oldPrice"]/del/text()').get().replace(',', '').strip('\n$'))
+            current_product['original_price'] = original_prices
 
             # PRECIO EN DESCUENTO
-            discount_prices = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/label[@class="price"]/text()').get()
-            current_product['discount_price'] = discount_prices.replace(',', '').strip('\n$')
+            discount_prices = float(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/label[@class="price"]/text()').get().replace(',', '').strip('\n$'))
+            current_product['discount_price'] = discount_prices
+
+            # DESCUENTO
+            current_product['discount'] = original_prices - discount_prices
+            
+            # PORCENTAJE DE DESCUENTO APROXIMADO
+            current_product['approximate_dicount_rate'] = ((original_prices - discount_prices) / original_prices) * 100
+            
+            # COSTE DE ENVÍO
+            delivery_costs = float(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emdeliverycost"]/span[@class="deliveryvalue"]/text()').get().lstrip('$'))
+            current_product['delivery_cost'] = delivery_costs
+            
+            # STOCK
+            stock = int(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emstock"]/span/text()').get())
+            current_product['stock'] = stock
+
+            # REVIEWS
+            reviews = int(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="emproduct_review"]//div[@class="reviews-total-txt"]/a/text()').get().strip('\nopiniones'))
+            current_product['reviews'] = reviews
+
 
             all_products.append(current_product)
         
