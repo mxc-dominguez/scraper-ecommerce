@@ -5,9 +5,10 @@
 """
 
 # STANDARD LIBRARY
-from datetime import date
+from datetime import date, datetime
 from typing import Dict, List
 # THIRD PARTY IMPORTS
+import numpy
 import pandas
 import scrapy
 
@@ -35,6 +36,9 @@ class OffersHomeSpider(scrapy.Spider):
 
             # FECHA
             current_product['date'] = date.today()
+
+            # HORA
+            current_product['time'] = datetime.now().time()
             
             # TITULO DE PRODUCTO
             product_titles = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]/div[@class="emproduct clear listiteminfogrid"]/div[@data-cp-complete-name="emproduct_cptitleBox"]//a/@title').get()
@@ -67,33 +71,39 @@ class OffersHomeSpider(scrapy.Spider):
             current_product['stock'] = stock
 
             # REVIEWS
-            reviews = int(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="emproduct_review"]//div[@class="reviews-total-txt"]/a/text()').get().strip('\nopiniones'))
-            current_product['reviews'] = reviews
+            try:
+                reviews = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="emproduct_review"]//div[@class="reviews-total-txt"]/a/text()').get().strip('\nopinioónes')
+                current_product['reviews'] = reviews
+            except AttributeError:
+                current_product['reviews'] = numpy.nan
 
             # STARS
             for star in range(1, 6):
-                # EXTRACCIÓN EN BUCLE PARA LAS CINCO TIPOS DE ESTRELLAS POR CADA PRODUCTO
-                # DICCIONARIO PARA NOMBRAR COLUMNAS
-                column_name = {
-                    1 : 'five_stars',
-                    2 : 'four_stars',
-                    3 : 'three_stars',
-                    4 : 'two_stars',
-                    5 : 'one_star'
-                }
-                # DICCIONARIO PARA IDENTIFICAL QUÉ TIPO DE REVIEW SE EXTRAE. EL NOMBRE ES DEBIDO A QUE EN EL DIV #1 SE ENCUANTRAN LAS PUNTUACIONES DE CINCO ESTRELLAS, EN EL SEGUNDO LAS DE CUATRO ESTRELLAS, ETC.
-                div_to_stars = {
-                    1 : 5,
-                    2 : 4,
-                    3 : 3,
-                    4 : 2,
-                    5 : 1
-                }
-                # SE LIMPIAN DOS VECES LOS STRING CON STRIP, LA PRIMERA PARA ELIMINAR TODOS LOS CARACTERES HASTA LOS PARENTESIS (ESTO PARA QUE div_to_stars[stars] NO ELIMINE EL NÚMERO DE REVIEWS EN CASO DE QUE COINCIDAN) Y EL SEGUNDO PARA ELIMINAR LOS PARENTESIS DEJANDO SOLO EL NÚMERO
-                stars = int(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="emproduct_review"]//div[@class="cpreviews_starsdesc"]/div[{star}]/div[3]/text()').get().strip(f'{div_to_stars[star]} estrellas: \n').strip('()'))
-                
-                current_product[column_name[star]] = stars
+                try:
+                    # EXTRACCIÓN EN BUCLE PARA LAS CINCO TIPOS DE ESTRELLAS POR CADA PRODUCTO
+                    # DICCIONARIO PARA NOMBRAR COLUMNAS
+                    column_name = {
+                        1 : 'five_stars',
+                        2 : 'four_stars',
+                        3 : 'three_stars',
+                        4 : 'two_stars',
+                        5 : 'one_star'
+                    }
+                    # DICCIONARIO PARA IDENTIFICAR QUÉ TIPO DE REVIEW SE EXTRAE. EL NOMBRE ES DEBIDO A QUE EN EL DIV #1 SE ENCUANTRAN LAS PUNTUACIONES DE CINCO ESTRELLAS, EN EL SEGUNDO LAS DE CUATRO ESTRELLAS, ETC.
+                    div_to_stars = {
+                        1 : 5,
+                        2 : 4,
+                        3 : 3,
+                        4 : 2,
+                        5 : 1
+                    }
+                    # SE LIMPIAN DOS VECES LOS STRING CON STRIP, LA PRIMERA PARA ELIMINAR TODOS LOS CARACTERES HASTA LOS PARENTESIS (ESTO PARA QUE div_to_stars[stars] NO ELIMINE EL NÚMERO DE REVIEWS EN CASO DE QUE COINCIDAN) Y EL SEGUNDO PARA ELIMINAR LOS PARENTESIS DEJANDO SOLO EL NÚMERO
+                    stars = int(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="emproduct_review"]//div[@class="cpreviews_starsdesc"]/div[{star}]/div[3]/text()').get().strip(f'{div_to_stars[star]} estrellas: \n').strip('()'))
 
+                    current_product[column_name[star]] = stars
+                
+                except AttributeError:
+                    current_product[column_name[star]] = numpy.nan
 
             all_products.append(current_product)
         
