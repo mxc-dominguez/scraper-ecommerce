@@ -41,34 +41,62 @@ class OffersHomeSpider(scrapy.Spider):
             current_product['time'] = datetime.now().time()
             
             # TITULO DE PRODUCTO
-            product_titles = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]/div[@class="emproduct clear listiteminfogrid"]/div[@data-cp-complete-name="emproduct_cptitleBox"]//a/@title').get()
-            current_product['product_title'] = product_titles
+            try:
+                product_titles = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]/div[@class="emproduct clear listiteminfogrid"]/div[@data-cp-complete-name="emproduct_cptitleBox"]//a/@title').get()
+                current_product['product_title'] = product_titles
+            except TypeError:
+                current_product['product_title'] = numpy.nan
             
             # CÓDIGO DE PRODUCTO
-            product_codes = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]/div[@class="emproduct clear listiteminfogrid"]//div[@class="emproduct_artnum"]/text()').get()
-            current_product['product_code'] = product_codes
+            try:
+                product_codes = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]/div[@class="emproduct clear listiteminfogrid"]//div[@class="emproduct_artnum"]/text()').get()
+                current_product['product_code'] = product_codes
+            except TypeError:
+                numpy.nan
 
             # PRECIO ORIGINAL
-            original_prices = float(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/span[@class="oldPrice"]/del/text()').get().replace(',', '').strip('\n$'))
-            current_product['original_price'] = original_prices
+            try:
+                original_prices = float(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/span[@class="oldPrice"]/del/text()').get().replace(',', '').strip('\n$'))
+                current_product['original_price'] = original_prices
+            
+            except AttributeError:
+                current_product['original_price'] = numpy.nan
 
             # PRECIO EN DESCUENTO
-            discount_prices = float(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/label[@class="price"]/text()').get().replace(',', '').strip('\n$'))
-            current_product['discount_price'] = discount_prices
+            try:
+                discount_prices = float(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emproduct_price"]/label[@class="price"]/text()').get().replace(',', '').strip('\n$'))
+                current_product['discount_price'] = discount_prices
+            except AttributeError:
+                current_product['discount_price'] = numpy.nan
 
             # DESCUENTO
-            current_product['discount'] = original_prices - discount_prices
+            try:
+                current_product['discount'] = original_prices - discount_prices
+            except UnboundLocalError:
+                current_product['discount'] = numpy.nan
             
             # PORCENTAJE DE DESCUENTO APROXIMADO
-            current_product['approximate_dicount_rate'] = ((original_prices - discount_prices) / original_prices) * 100
+            try:
+                current_product['approximate_dicount_rate'] = ((original_prices - discount_prices) / original_prices)
+            except :
+                current_product['approximate_dicount_rate'] = numpy.nan
             
             # COSTE DE ENVÍO
-            delivery_costs = float(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emdeliverycost"]/span[@class="deliveryvalue"]/text()').get().lstrip('$'))
-            current_product['delivery_cost'] = delivery_costs
+            try:
+                delivery_costs = float(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emdeliverycost"]/span[@class="deliveryvalue"]/text()').get().lstrip('$'))
+                current_product['delivery_cost'] = delivery_costs
+            except AttributeError:
+                current_product['delivery_cost'] = numpy.nan
             
             # STOCK
-            stock = int(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emstock"]/span/text()').get())
-            current_product['stock'] = stock
+            try:
+                stock = int(response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emstock"]/span/text()').get())
+                current_product['stock'] = stock
+            except ValueError:
+                stock = response.xpath(f'//ul[@id="cp-start-daily-offers"]//form[@name="tobasketemstartpagenew-{product}"]//div[@class="moreinfo-section"]/div[@class="emstock"]/span/text()').get()
+                current_product['stock'] = stock
+            except TypeError:
+                numpy.nan
 
             # REVIEWS
             try:
@@ -108,4 +136,4 @@ class OffersHomeSpider(scrapy.Spider):
             all_products.append(current_product)
         
         products_home = pandas.DataFrame(data=all_products)
-        products_home.to_csv(f'data-products-offers/products-offers-{date.today()}.csv', index=False, encoding='utf-8')  
+        products_home.to_csv(f'data-products-offers/products-offers-{date.today()}-{datetime.now().time()}.csv', index=False, encoding='utf-8')  
