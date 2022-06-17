@@ -34,11 +34,8 @@ class OffersHomeSpider(scrapy.Spider):
             # NÚMERO DE PRODUCTO
             current_product['product'] = product
 
-            # FECHA
-            current_product['date'] = date.today()
-
-            # HORA
-            current_product['time'] = datetime.now().time()
+            # DATETIME
+            current_product['datetime'] = datetime.now()
             
             # TITULO DE PRODUCTO
             try:
@@ -136,4 +133,4 @@ class OffersHomeSpider(scrapy.Spider):
             all_products.append(current_product)
         
         products_home = pandas.DataFrame(data=all_products)
-        products_home.to_csv(f'data-products-offers/products-offers-{date.today()}-{datetime.now().time()}.csv', index=False, encoding='utf-8')  
+        products_home.to_csv(f'data-products-offers/products-offers-{date.today()}_{datetime.now().time()}.csv', index=False, encoding='utf-8')  
